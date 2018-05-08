@@ -20,22 +20,24 @@ class Kirchoff(object):
         #treat row BC j=0 and j=N:
         j=0 #j is col 
         for i in range(self.N): #i is row
-            if i==0: row_u=self.N
+            if i==0: row_u=(self.N-1)
             else:
                 row_u=i-1 
-            if i==self.N: row_d=0
-            row_d=i+1
+            if i==(self.N-1): row_d=0
+            else:
+                row_d=i+1
             self.NB[i*self.N+j][0]=0
             self.NB[i*self.N+j][1]=(i*self.N+j+1)
             self.NB[i*self.N+j][2]=((row_u)*self.N+j)
             self.NB[i*self.N+j][3]=((row_d)*self.N+j)
         j=(self.N-1)
         for i in range(self.N): #i is row
-            if i==0: row_u=self.N
+            if i==0: row_u=(self.N-1)
             else:
                 row_u=i-1 
-            if i==self.N: row_d=0
-            row_d=i+1
+            if i==(self.N-1): row_d=0
+            else:
+                row_d=i+1
             self.NB[i*self.N+j][0]=(i*self.N+j-1)
             self.NB[i*self.N+j][1]=0
             self.NB[i*self.N+j][2]=((row_u)*self.N+j)
@@ -43,11 +45,12 @@ class Kirchoff(object):
 
         #BC: perodic along col; not perodic along row
         for i in range(self.N):  # i is row
-            if i==0: row_u=self.N
+            if i==0: row_u=(self.N-1)
             else:
                 row_u=i-1 
-            if i==self.N: row_d=0
-            row_d=i+1
+            if i==(self.N-1): row_d=0
+            else:
+                row_d=i+1
             for j in range(1,self.N-1):    # j is col
                 self.NB[i*self.N+j][0]=(i*self.N+j-1)   #left
                 self.NB[i*self.N+j][1]=(i*self.N+j+1)   #right
@@ -68,32 +71,50 @@ class Kirchoff(object):
                 denom+=self.g[i][j]
             return(num/denom)
     def update_Vi_2D(self,i):
-        return
+        num=0.0
+        denom=0.0
+        if i%(self.N-1)==0:  #skip 2nd NB
+            j=int(self.NB[i][0])
+            num+=self.g[i][j]*self.V_flat[j]
+            denom+=self.g[i][j]
+            j=int(self.NB[i][2])
+            num+=self.g[i][j]*self.V_flat[j]
+            denom+=self.g[i][j]
+            j=int(self.NB[i][3])
+            num+=self.g[i][j]*self.V_flat[j]
+            denom+=self.g[i][j]
+            return(num/denom)
+        else:
+            for k in range(len(self.NB[i])):
+                j=int(self.NB[i][k])
+                num+=self.g[i][j]*self.V_flat[j]
+                denom+=self.g[i][j]
+            return(num/denom)
 
 
     #get initial g_ij (conductances)
     def initial_sigma_1D(self):
         if self.typ=="uniform":
-            sigma=np.ones(N)
+            sigma=np.ones(self.N)
         elif self.typ=="broken":
-            sigma=np.ones(N)
-            sigma[N//2]=1e-20
-            sigma[N//2+1]=1e-20
+            sigma=np.ones(self.N)
+            sigma[self.N//2]=1e-20
+            sigma[self.N//2+1]=1e-20
         elif self.typ=="fake-GB":
-            sigma=np.ones(N)
-            sigma[N//2]=1e-2
+            sigma=np.ones(self.N)
+            sigma[self.N//2]=1e-2
         return sigma
 
-    def initial_sigma_1D(self):
+    def initial_sigma_2D(self):
         if self.typ=="uniform":
-            sigma=np.ones(N)
-        elif self.typ=="broken":
-            sigma=np.ones(N)
-            sigma[N//2]=1e-20
-            sigma[N//2+1]=1e-20
-        elif self.typ=="fake-GB":
-            sigma=np.ones(N)
-            sigma[N//2]=1e-2
+            sigma=np.ones(self.N**2)
+        elif self.typ=="defects": #25% random defects
+            sigma=np.ones(self.N**2)
+            rd_lst=np.arange(self.N**2)
+            np.random.shuffle(rd_lst)
+            print(rd_lst)
+            for i in rd_lst:
+                sigma[i]=1e-8
         return sigma
             
     def initial_g_1D(self):
@@ -112,6 +133,7 @@ class Kirchoff(object):
     def initial_V_1D(self):
         self.V[0]=self.V_A
         return
+
     def initial_V_2D(self):
         self.V_flat=self.V.flatten('C')
         for i in range(self.N):
@@ -126,6 +148,16 @@ class Kirchoff(object):
             print("step %2d"%(ep))
             print(self.V)
         return
+
+    def iteration_2D(self):
+        for ep in range(self.max_epoch):
+            for i in range(1,self.N**2):
+                self.V_flat[i]=self.update_Vi_2D(i)
+            #print("step %2d"%(ep))
+            #print(self.V_flat)
+        return
+
+ 
 
     def __init__(self,D,N,typ,V_A,max_epoch):
         self.D=D
@@ -146,25 +178,26 @@ class Kirchoff(object):
             self.sigma=self.initial_sigma_2D()
             self.V=np.zeros((self.N,self.N))
             self.initial_V_2D()
-            print(self.V_flat)
+            #print(self.V_flat)
             self.initial_NB_list_2D()
-            print(self.NB)
-            self.g=np.zeros((self.N,self.N))
+            #print(self.NB)
+            self.g=np.zeros((self.N**2,self.N**2))
             self.initial_g_2D()
             self.iteration_2D()
         print("final Voltage")
-        print(self.V)
+        print(self.V_flat)
         return
 
 #define mesh density
-N=5
+N=10
 #define Voltage on one lhs
 V_A=100.0
 #define maximum iterations
-max_epoch=20
+max_epoch=100
 
-test_1D=Kirchoff(1,N,'broken',V_A,max_epoch) #1D:"broken","uniform","fake-GB"
-test_1D=Kirchoff(1,N,'uniform',V_A,max_epoch) 
-test_1D=Kirchoff(1,N,'fake-GB',V_A,max_epoch) 
-#test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch) 
+#test_1D=Kirchoff(1,N,'broken',V_A,max_epoch) #1D:"broken","uniform","fake-GB"
+#test_1D=Kirchoff(1,N,'uniform',V_A,max_epoch) 
+#test_1D=Kirchoff(1,N,'fake-GB',V_A,max_epoch) 
+test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch) 
+test_2D=Kirchoff(2,N,'defects',V_A,max_epoch) 
 
