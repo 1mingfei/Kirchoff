@@ -202,11 +202,11 @@ class Kirchoff(object):
         return
 
 #define mesh density
-N=100
+N=50
 #define Voltage on one lhs
 V_A=100.0
 #define maximum iterations
-max_epoch=2000
+max_epoch=1000
 
 #test_1D=Kirchoff(1,N,'broken',V_A,max_epoch) #1D:"broken","uniform","fake-GB"
 #test_1D=Kirchoff(1,N,'uniform',V_A,max_epoch) 
