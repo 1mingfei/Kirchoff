@@ -110,10 +110,10 @@ class Kirchoff(object):
             sigma=np.ones(self.N**2)
         elif self.typ=="defects": #25% random defects
             sigma=np.ones(self.N**2)
-            rd_lst=np.arange(self.N**2)
+            rd_lst=np.arange((self.N-1)**2)
             np.random.shuffle(rd_lst)
             print(rd_lst)
-            for i in rd_lst[:20]:
+            for i in rd_lst[:50]:
                 sigma[i]=1e-10
         return sigma
             
@@ -157,6 +157,13 @@ class Kirchoff(object):
             #print(self.V_flat)
         return
 
+    def flat_to_V_2D(self):
+        for i in range(self.N):
+            for j in range(self.N):
+                self.V[i][j]=self.V_flat[i*self.N+j]
+        return
+
+
  
 
     def __init__(self,D,N,typ,V_A,max_epoch):
@@ -184,12 +191,15 @@ class Kirchoff(object):
             self.g=np.zeros((self.N**2,self.N**2))
             self.initial_g_2D()
             self.iteration_2D()
+            self.flat_to_V_2D()
         print("final Voltage")
         print(self.V_flat)
+        print(self.V)
+        print(np.mean(self.V[:,-1]))
         return
 
 #define mesh density
-N=10
+N=50
 #define Voltage on one lhs
 V_A=100.0
 #define maximum iterations
