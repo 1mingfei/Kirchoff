@@ -113,8 +113,8 @@ class Kirchoff(object):
             rd_lst=np.arange(self.N**2)
             np.random.shuffle(rd_lst)
             print(rd_lst)
-            for i in rd_lst:
-                sigma[i]=1e-8
+            for i in rd_lst[:20]:
+                sigma[i]=1e-10
         return sigma
             
     def initial_g_1D(self):
