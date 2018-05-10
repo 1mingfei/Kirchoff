@@ -176,11 +176,11 @@ class Kirchoff(object):
         else:
             order=get_pixel_value(self.typ,self.N)
             ng=np.negative(2.0*order,dtype='f')
-            print(order)
+            #print(order)
             sigma=np.power(10, ng, dtype='f')
-            print(sigma)
+            #print(sigma)
             sigma_flat=sigma.flatten('C')
-            self.plot_contour('tmp.pdf',sigma_flat)
+            #self.plot_contour('tmp.pdf',sigma_flat)
         return sigma_flat
 
             
@@ -276,7 +276,12 @@ max_epoch=15000
 #test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
 #test_2D=Kirchoff(2,N,'broken',V_A,max_epoch) 
 #test_2D=Kirchoff(2,N,'arb1',V_A,max_epoch) 
+print("N=100, V_A=100, max_epoch=15000")
+print("uniform")
 test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
+print("two grains")
 test_2D=Kirchoff(2,N,'twograins',V_A,max_epoch) 
+print("read 1")
 test_2D=Kirchoff(2,N,'1.png',V_A,max_epoch) 
+print("read 2")
 test_2D=Kirchoff(2,N,'2.png',V_A,max_epoch) 
