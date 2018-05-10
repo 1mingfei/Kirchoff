@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Kirchoff(object):
 
@@ -106,6 +107,16 @@ class Kirchoff(object):
             sigma[self.N//2]=1e-2
         return sigma
 
+    def plot_contour(self,name,sigma_flat):
+        xx, yy = np.meshgrid(np.arange(self.N),np.arange(self.N))
+        CS=plt.contour(xx,yy,np.log(sigma_flat.reshape(self.N,self.N)),levels=[-8,-4,-2],origin="lower")
+        plt.clabel(CS,inline=1, fontsize=10)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.savefig(name)
+        plt.close()
+        return
+
     def initial_sigma_2D(self):
         sigma_flat=np.ones(self.N**2)
         if self.typ=="uniform":
@@ -141,7 +152,9 @@ class Kirchoff(object):
                     if  ((i-center)**2+(j-center)**2<(quarter//2)**2) :
                         sigma[i][j]=1e-8
             sigma_flat=sigma.flatten('C')
+            self.plot_contour('arb1_1void_2grain.pdf',sigma_flat)
         return sigma_flat
+
             
     def initial_g_1D(self):
         for i in range(self.N):
@@ -221,16 +234,16 @@ class Kirchoff(object):
         return
 
 #define mesh density
-#N=50
-N=20
+N=50
 #define Voltage on one lhs
 V_A=100.0
 #define maximum iterations
-max_epoch=2000
+#max_epoch=15000
+max_epoch=1
 
 #test_1D=Kirchoff(1,N,'broken',V_A,max_epoch) #1D:"broken","uniform","fake-GB"
 #test_1D=Kirchoff(1,N,'uniform',V_A,max_epoch) 
 #test_1D=Kirchoff(1,N,'fake-GB',V_A,max_epoch) 
 #test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
-test_2D=Kirchoff(2,N,'broken',V_A,max_epoch) 
+#test_2D=Kirchoff(2,N,'broken',V_A,max_epoch) 
 test_2D=Kirchoff(2,N,'arb1',V_A,max_epoch) 
