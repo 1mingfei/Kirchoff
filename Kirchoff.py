@@ -147,7 +147,7 @@ class Kirchoff(object):
             print(rd_lst)
             for i in rd_lst[:50]:
                 sigma_flat[i]=1e-10
-        elif self.typ=="broken":
+        elif self.typ=="twograins":
             for i in range(self.N):    # i is row
                 sigma_flat[i*self.N+self.N//2-1]  = 1e-2    
                 sigma_flat[i*self.N+self.N//2]    = 1e-2    
@@ -277,6 +277,6 @@ max_epoch=15000
 #test_2D=Kirchoff(2,N,'broken',V_A,max_epoch) 
 #test_2D=Kirchoff(2,N,'arb1',V_A,max_epoch) 
 test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
-test_2D=Kirchoff(2,N,'broken',V_A,max_epoch) 
+test_2D=Kirchoff(2,N,'twograins',V_A,max_epoch) 
 test_2D=Kirchoff(2,N,'1.png',V_A,max_epoch) 
 test_2D=Kirchoff(2,N,'2.png',V_A,max_epoch) 
