@@ -2,6 +2,7 @@
 import numpy as np
 
 class Kirchoff(object):
+
     #get initial Neighbour list:
     def initial_NB_list_1D(self):
         Dmn=2 #dimension of 1D NNB list(left/right)
@@ -14,6 +15,7 @@ class Kirchoff(object):
             self.NB[i][0]=(i-1)
             self.NB[i][1]=(i+1)
         return
+
     def initial_NB_list_2D_PBC(self):
         Dmn=4 #dimension of 1D NNB list(left/right)
         self.NB=np.zeros((self.N**2,Dmn))
@@ -42,7 +44,6 @@ class Kirchoff(object):
             self.NB[i*self.N+j][1]=0
             self.NB[i*self.N+j][2]=((row_u)*self.N+j)
             self.NB[i*self.N+j][3]=((row_d)*self.N+j)
-
         #BC: perodic along col; not perodic along row
         for i in range(self.N):  # i is row
             if i==0: row_u=(self.N-1)
@@ -70,6 +71,7 @@ class Kirchoff(object):
                 num+=self.g[i][j]*self.V[j]
                 denom+=self.g[i][j]
             return(num/denom)
+
     def update_Vi_2D(self,i):
         num=0.0
         denom=0.0
@@ -105,7 +107,7 @@ class Kirchoff(object):
         return sigma
 
     def initial_sigma_2D(self):
-        sigma=np.ones(self.N**2)
+        sigma_flat=np.ones(self.N**2)
         if self.typ=="uniform":
             pass
         elif self.typ=="defects": #25% random defects
@@ -113,13 +115,33 @@ class Kirchoff(object):
             np.random.shuffle(rd_lst)
             print(rd_lst)
             for i in rd_lst[:50]:
-                sigma[i]=1e-10
+                sigma_flat[i]=1e-10
         elif self.typ=="broken":
             for i in range(self.N):    # i is row
-                sigma[i*self.N+self.N//2-1]  = 1e-2    
-                sigma[i*self.N+self.N//2]    = 1e-3    
-                sigma[i*self.N+self.N//2+1]  = 1e-2    
-        return sigma
+                sigma_flat[i*self.N+self.N//2-1]  = 1e-2    
+                sigma_flat[i*self.N+self.N//2]    = 1e-2    
+                sigma_flat[i*self.N+self.N//2+1]  = 1e-2    
+        elif self.typ=="arb1":
+            #add a grain boundary
+            for i in range(self.N):    # i is row
+                sigma_flat[i*self.N+self.N//2-1]  = 1e-2    
+                sigma_flat[i*self.N+self.N//2]    = 1e-2    
+                sigma_flat[i*self.N+self.N//2+1]  = 1e-2    
+            sigma=sigma_flat.reshape(self.N,self.N)
+            #add a large circle GB
+            center=self.N//2
+            quarter=self.N//4
+            for i in range(self.N):    # i is row
+                for j in range(self.N):    # j is row
+                    if  ((i-center)**2+(j-center)**2<quarter**2) :
+                        sigma[i][j]=1e-2
+            #add a small circle void
+            for i in range(self.N):    # i is row
+                for j in range(self.N):    # j is row
+                    if  ((i-center)**2+(j-center)**2<(quarter//2)**2) :
+                        sigma[i][j]=1e-8
+            sigma_flat=sigma.flatten('C')
+        return sigma_flat
             
     def initial_g_1D(self):
         for i in range(self.N):
@@ -168,9 +190,6 @@ class Kirchoff(object):
         self.V=self.V_flat.reshape(self.N,self.N)
         return
 
-
- 
-
     def __init__(self,D,N,typ,V_A,max_epoch):
         self.D=D
         self.N=N
@@ -196,21 +215,22 @@ class Kirchoff(object):
             self.initial_g_2D()
             self.iteration_2D()
             self.flat_to_V_2D()
-        print("final Voltage")
-        print(self.V)
+        #print("final Voltage")
+        #print(self.V)
         print(np.mean(self.V[:,-1]))
         return
 
 #define mesh density
-N=50
+#N=50
+N=20
 #define Voltage on one lhs
 V_A=100.0
 #define maximum iterations
-max_epoch=1000
+max_epoch=2000
 
 #test_1D=Kirchoff(1,N,'broken',V_A,max_epoch) #1D:"broken","uniform","fake-GB"
 #test_1D=Kirchoff(1,N,'uniform',V_A,max_epoch) 
 #test_1D=Kirchoff(1,N,'fake-GB',V_A,max_epoch) 
-test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
+#test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
 test_2D=Kirchoff(2,N,'broken',V_A,max_epoch) 
-
+test_2D=Kirchoff(2,N,'arb1',V_A,max_epoch) 
