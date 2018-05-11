@@ -6,11 +6,13 @@ np.set_printoptions(threshold=np.nan)
 from PIL import Image
 import matplotlib.image as mpimg
 
-def get_pixel_value(fname,size=20):
+def get_pixel_value(fname,Nsize):
     f=Image.open(fname).convert('P',colors=3)
-    f.thumbnail((size, size), Image.ANTIALIAS)
-    a = np.asarray(f)
-    #print(a.shape)
+    #f.thumbnail((Nsize, Nsize), Image.ANTIALIAS)
+    #f.thumbnail((Nsize, Nsize), Image.NEAREST)
+    f1=f.resize((Nsize, Nsize), Image.ANTIALIAS)
+    a = np.asarray(f1)
+    print(a.shape)
     #print(a)
     #plt.imshow(f)
     #plt.axis('off')
@@ -128,11 +130,11 @@ class Kirchoff(object):
     def plot_contour(self,name,sigma_flat):
         xx, yy = np.meshgrid(np.arange(self.N),np.arange(self.N))
         #CS=plt.contour(xx,yy,np.log(sigma_flat.reshape(self.N,self.N)),levels=[-8,-4,-2],origin="lower")
-        #CS=plt.contour(xx,yy,np.log(sigma_flat.reshape(self.N,self.N)),origin="lower")
-        CS=plt.contour(xx,yy,np.log(sigma_flat.reshape(self.N,self.N)))
-        plt.clabel(CS,inline=1, fontsize=10)
-        plt.xlabel('x')
-        plt.ylabel('y')
+        CS=plt.contour(xx,yy,np.log(sigma_flat.reshape(self.N,self.N)),origin="image")
+        #plt.clabel(CS,inline=1, fontsize=10)
+        plt.axis('off')
+        #plt.xlabel('x')
+        #plt.ylabel('y')
         plt.savefig(name)
         plt.close()
         return
@@ -172,15 +174,17 @@ class Kirchoff(object):
                     if  ((i-center)**2+(j-center)**2<(quarter//2)**2) :
                         sigma[i][j]=1e-8
             sigma_flat=sigma.flatten('C')
-            self.plot_contour('arb1_1void_2grain.pdf',sigma_flat)
+            #self.plot_contour('arb1_1void_2grain.pdf',sigma_flat)
         else:
             order=get_pixel_value(self.typ,self.N)
             ng=np.negative(2.0*order,dtype='f')
             #print(order)
+            print(order.shape)
             sigma=np.power(10, ng, dtype='f')
             #print(sigma)
+            print(sigma.shape)
             sigma_flat=sigma.flatten('C')
-            #self.plot_contour('tmp.pdf',sigma_flat)
+            self.plot_contour('tmp.pdf',sigma_flat)
         return sigma_flat
 
             
@@ -249,13 +253,11 @@ class Kirchoff(object):
             self.sigma=self.initial_sigma_2D()
             self.V=np.zeros((self.N,self.N))
             self.initial_V_2D()
-            #print(self.V_flat)
             self.initial_NB_list_2D_PBC()
-            #print(self.NB)
             self.g=np.zeros((self.N**2,self.N**2))
-            self.initial_g_2D()
-            self.iteration_2D()
-            self.flat_to_V_2D()
+            #self.initial_g_2D()
+            #self.iteration_2D()
+            #self.flat_to_V_2D()
         #print("final Voltage")
         #print(self.V)
         print(np.mean(self.V[:,-1]))
@@ -266,8 +268,8 @@ N=100
 #define Voltage on one lhs
 V_A=100.0
 #define maximum iterations
-max_epoch=15000
-#max_epoch=1
+#max_epoch=15000
+max_epoch=1
 
 #get_pixel_value('2.png',N)
 #test_1D=Kirchoff(1,N,'broken',V_A,max_epoch) #1D:"broken","uniform","fake-GB"
@@ -276,12 +278,13 @@ max_epoch=15000
 #test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
 #test_2D=Kirchoff(2,N,'broken',V_A,max_epoch) 
 #test_2D=Kirchoff(2,N,'arb1',V_A,max_epoch) 
-print("N=100, V_A=100, max_epoch=15000")
-print("uniform")
-test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
-print("two grains")
-test_2D=Kirchoff(2,N,'twograins',V_A,max_epoch) 
-print("read 1")
-test_2D=Kirchoff(2,N,'1.png',V_A,max_epoch) 
-print("read 2")
-test_2D=Kirchoff(2,N,'2.png',V_A,max_epoch) 
+#print("N=100, V_A=100, max_epoch=15000")
+#print("uniform")
+#test_2D=Kirchoff(2,N,'uniform',V_A,max_epoch)  #2D:"uniform","broken"
+#print("two grains")
+#test_2D=Kirchoff(2,N,'twograins',V_A,max_epoch) 
+#print("read 1")
+#test_2D=Kirchoff(2,N,'1.png',V_A,max_epoch) 
+#print("read 2")
+#test_2D=Kirchoff(2,N,'2.png',V_A,max_epoch) 
+test_2D=Kirchoff(2,N,'3.png',V_A,max_epoch) 
